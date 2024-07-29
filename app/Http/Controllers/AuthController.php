@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Events\UpdateDataset;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -37,6 +38,8 @@ class AuthController extends Controller
                 'user' => $user,
                 'token' => $token,
             ];
+            // Broadcast the new user using UpdateDataset event
+            broadcast(new UpdateDataset([$user], "single"));
         }catch (Exception $exception) {
             return sendErrorResponse('Something went wrong: '.$exception->getMessage());
         }
