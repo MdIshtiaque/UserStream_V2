@@ -67,7 +67,6 @@
 <script src="https://js.pusher.com/7.0/pusher.min.js"></script>
 <script>
     Pusher.logToConsole = true;
-
     var pusher = new Pusher('local', {
         cluster: 'mt1',
         wsHost: '127.0.0.1',
@@ -80,30 +79,41 @@
 
     var channel = pusher.subscribe('dataset');
     channel.bind('App\\Events\\UpdateDataset', function(data) {
-        const users = data.data;
+        if (data.type === 'batch') {
+            renderUsers(data.data); // Replace existing users with new batch
+        } else if (data.type === 'single') {
+            prependUser(data.data[0]); // Append new user to existing list
+        }
+    });
+
+    function renderUsers(users) {
         const container = document.getElementById('data-container');
-        container.innerHTML = '';
-        users.forEach(user => {
-            const userElement = document.createElement('div');
-            userElement.className = 'user-card';
-            userElement.innerHTML = `
-                <h5>${user.name}</h5>
-                <p><strong>Email:</strong> ${user.email}</p>
-                <small>Joined on: ${new Date(user.created_at).toLocaleDateString('en-US', {
-                year: 'numeric', month: 'long', day: 'numeric'
-            })}</small>
-            `;
-            container.appendChild(userElement);
+        container.innerHTML = ''; // Clear existing users
+        // Reverse the array to maintain the order consistency
+        users.reverse().forEach(user => {
+            prependUser(user); // Use prependUser for consistency
         });
-    });
+    }
 
-    pusher.connection.bind('error', function(err) {
-        console.error('Error with Pusher connection', err);
-    });
+    function prependUser(user) {
+        const container = document.getElementById('data-container');
+        const userElement = document.createElement('div');
+        userElement.className = 'user-card';
+        userElement.innerHTML = `
+        <h5>${user.name}</h5>
+        <p><strong>Email:</strong> ${user.email}</p>
+        <small>Joined on: ${new Date(user.created_at).toLocaleDateString('en-US', {
+            year: 'numeric', month: 'long', day: 'numeric'
+        })}</small>
+    `;
 
-    pusher.connection.bind('connected', function() {
-        console.log('Successfully connected!');
-    });
+        // Check if there are existing user cards, and prepend the new user
+        if (container.firstChild) {
+            container.insertBefore(userElement, container.firstChild);
+        } else {
+            container.appendChild(userElement); // If no users are displayed yet
+        }
+    }
 </script>
 </body>
 </html>

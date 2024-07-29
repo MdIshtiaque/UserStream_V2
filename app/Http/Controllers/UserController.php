@@ -13,8 +13,8 @@ class UserController extends Controller
     public function index(): JsonResponse
     {
         try {
-            $users = User::all();
-            broadcast(new UpdateDataset($users));
+            $users = User::orderBy('id', 'DESC')->paginate(100);
+            broadcast(new UpdateDataset($users->items()));
         }catch (Exception $exception) {
             return sendErrorResponse('Something went wrong: '.$exception->getMessage());
         }

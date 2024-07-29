@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\UpdateDataset;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -37,6 +38,8 @@ class AuthController extends Controller
                 'user' => $user,
                 'token' => $token,
             ];
+            // Broadcast the new user using UpdateDataset event
+            broadcast(new UpdateDataset([$user], "single"));
         }catch (Exception $exception) {
             return sendErrorResponse('Something went wrong: '.$exception->getMessage());
         }

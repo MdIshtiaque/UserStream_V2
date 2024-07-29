@@ -15,10 +15,12 @@ class UpdateDataset implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $data;
+    public $type; // "single" for one user, "batch" for multiple users
 
-    public function __construct($data)
+    public function __construct($data, $type = "batch")
     {
         $this->data = $data;
+        $this->type = $type;
     }
 
     public function broadcastOn()
@@ -29,7 +31,10 @@ class UpdateDataset implements ShouldBroadcast
     public function broadcastWith()
     {
         try {
-            return ['data' => $this->data];
+            return [
+                'data' => $this->data,
+                'type' => $this->type
+            ];
         } catch (\Exception $e) {
             Log::error("Failed to broadcast data: " . $e->getMessage());
             return [];
